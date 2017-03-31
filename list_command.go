@@ -41,7 +41,7 @@ func listCommand(args []string) error {
 		deployments = deployments.FilterByState(state)
 	}
 
-	fmt.Println(deployments.String())
+	fmt.Println(deployments.String(includeStatuses))
 
 	return nil
 }

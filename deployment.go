@@ -21,16 +21,25 @@ type Deployment struct {
 type Deployments []*Deployment
 
 // String formats a string for output of the deployment
-func (d *Deployment) String() string {
+func (d *Deployment) String(includeStatus bool) string {
 	var status string
-	if d.Status != nil {
-		status = fmt.Sprintf(" - %s", d.Status.State)
+	if includeStatus {
+		if d.Status == nil {
+			status = "\tno status"
+		} else {
+			status = fmt.Sprintf("\t%s", d.Status.State)
+		}
+	}
+	// Make deploy by id a bit nicer
+	ref := d.Ref
+	if d.Ref == d.Sha {
+		ref = d.Ref[:8]
 	}
 	return fmt.Sprintf(
-		"%d%s - %s (%s) in %s at %s by %s",
+		"%d%s\t%s\t%s\t%s\t%s\t%s",
 		d.ID,
 		status,
-		d.Ref,
+		ref,
 		d.Sha[:8],
 		d.Environment,
 		d.CreatedAt.Format(time.RFC3339),
@@ -39,13 +48,17 @@ func (d *Deployment) String() string {
 }
 
 // String formats a string for output of the deployments
-func (d Deployments) String() string {
+func (d Deployments) String(includeStatus bool) string {
 	if len(d) == 0 {
 		return "No deployments"
 	}
-	res := ""
+	status := ""
+	if includeStatus {
+		status = "\tStatus"
+	}
+	res := fmt.Sprintf("ID%s\tRef\tSha\tEnvironment\tDate\tDeployer\n", status)
 	for _, deployment := range d {
-		res += deployment.String() + "\n"
+		res += deployment.String(includeStatus) + "\n"
 	}
 	return res
 }
