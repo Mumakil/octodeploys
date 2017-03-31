@@ -6,16 +6,23 @@ import (
 	"sync"
 )
 
-var limit uint64
-var environment string
-var state string
-var includeStatuses bool
+// Limit how many deployments to fetch from GitHub API
+var Limit uint64
+
+// Environment filter by environment
+var Environment string
+
+// State filter by state
+var State string
+
+// IncludeStatuses whether to include statuses when reporting
+var IncludeStatuses bool
 
 func init() {
-	flag.Uint64Var(&limit, "limit", 100, "how many deployments to list")
-	flag.StringVar(&environment, "environment", "", "filter by given environment")
-	flag.StringVar(&state, "state", "", "filter by given state")
-	flag.BoolVar(&includeStatuses, "statuses", false, "fetch also statuses")
+	flag.Uint64Var(&Limit, "limit", 100, "how many deployments to list")
+	flag.StringVar(&Environment, "environment", "", "filter by given environment")
+	flag.StringVar(&State, "state", "", "filter by given state")
+	flag.BoolVar(&IncludeStatuses, "statuses", false, "fetch also statuses")
 }
 
 func listCommand(args []string) error {
@@ -31,17 +38,17 @@ func listCommand(args []string) error {
 		return err
 	}
 
-	if includeStatuses || state != "" {
+	if IncludeStatuses || State != "" {
 		err = fetchStatuses(client, deployments)
 		if err != nil {
 			return err
 		}
 	}
-	if state != "" {
-		deployments = deployments.FilterByState(state)
+	if State != "" {
+		deployments = deployments.FilterByState(State)
 	}
 
-	fmt.Println(deployments.String(includeStatuses))
+	fmt.Println(deployments.String(IncludeStatuses))
 
 	return nil
 }
@@ -50,8 +57,8 @@ func fetchDeployments(client *Client) (Deployments, error) {
 	var deployments Deployments
 	path := fmt.Sprintf("/repos/%s/deployments", GitHubRepository)
 	query := map[string]string{
-		"limit":       fmt.Sprintf("%d", limit),
-		"environment": environment,
+		"limit":       fmt.Sprintf("%d", Limit),
+		"environment": Environment,
 	}
 
 	err := client.Get(path, query, &deployments)

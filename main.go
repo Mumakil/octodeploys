@@ -58,6 +58,8 @@ func main() {
 		err = listCommand(args)
 	case "deactivate":
 		err = deactivateCommand(args)
+	case "deactivateAll":
+		err = deactivateAllCommand(args)
 	default:
 		fmt.Printf("Unrecognized command \"%s\"\n\n", command)
 		fmt.Println(help)
