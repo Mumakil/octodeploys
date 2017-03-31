@@ -34,6 +34,12 @@ Fetch 5 most recent deployments by environment, filter by state and include stat
 github-deployments -statuses -state error -environment production -limit 5 list
 ```
 
+Deactivate (set status to `inactive`) two deployments
+
+```sh
+github-deployments -description "No longer active" deactivate 281858265 281858266
+```
+
 ## License
 
 MIT
