@@ -54,7 +54,7 @@ func (d Deployments) String() string {
 func (d Deployments) FilterByState(state string) Deployments {
 	deployments := Deployments{}
 	for _, deployment := range d {
-		if deployment.Status.State == state {
+		if deployment.Status != nil && deployment.Status.State == state {
 			deployments = append(deployments, deployment)
 		}
 	}
