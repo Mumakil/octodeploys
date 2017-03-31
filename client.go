@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -36,30 +37,23 @@ func NewClient(token string) *Client {
 
 // Get performs a get request and unmarshals the data to response
 func (c *Client) Get(path string, query map[string]string, response interface{}) error {
-	uri, err := url.Parse(BaseURL)
+	url, err := c.createURL(path, query)
 	if err != nil {
 		return err
-	}
-	uri.Path = path
-	if len(query) > 0 {
-		v := url.Values{}
-		for param, value := range query {
-			v.Add(param, value)
-		}
-		uri.RawQuery = v.Encode()
 	}
 
-	req, err := http.NewRequest(http.MethodGet, uri.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("client: error creating http request: %s", err.Error())
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("token %s", c.token))
-	req.Header.Add("Accept", DefaultAcceptHeader)
+	req.Header.Add("Accept", c.AcceptHeader)
 
 	res, err := c.client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("client: error making a http request: %s", err.Error())
 	}
+	defer res.Body.Close()
 	if res.StatusCode != 200 {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -70,5 +64,58 @@ func (c *Client) Get(path string, query map[string]string, response interface{})
 
 	decoder := json.NewDecoder(res.Body)
 	err = decoder.Decode(&response)
-	return err
+	if err != nil {
+		return fmt.Errorf("client: error unmarshaling json response: %s", err.Error())
+	}
+	return nil
+}
+
+// Post performs a post request with the provided data marshaled into the json body
+func (c *Client) Post(path string, data interface{}) error {
+	url, err := c.createURL(path, nil)
+	if err != nil {
+		return err
+	}
+
+	buf := new(bytes.Buffer)
+	err = json.NewEncoder(buf).Encode(data)
+	if err != nil {
+		return fmt.Errorf("client: error marshaling request body: %s", err.Error())
+	}
+	req, err := http.NewRequest(http.MethodPost, url, buf)
+	if err != nil {
+		return fmt.Errorf("client: error creating http request: %s", err.Error())
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("token %s", c.token))
+	req.Header.Add("Accept", c.AcceptHeader)
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("client: error making http request: %s", err.Error())
+	}
+	defer res.Body.Close()
+	if res.StatusCode < 200 || res.StatusCode > 204 {
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return fmt.Errorf("client: error reading api error response: %s", err.Error())
+		}
+		return fmt.Errorf("client: GitHub api error - status %d: %s", res.StatusCode, body)
+	}
+	return nil
+}
+
+func (c *Client) createURL(path string, query map[string]string) (string, error) {
+	parsedURL, err := url.Parse(BaseURL)
+	if err != nil {
+		return "", fmt.Errorf("client: error creating an url: %s", err.Error())
+	}
+	parsedURL.Path = path
+	if len(query) > 0 {
+		v := url.Values{}
+		for param, value := range query {
+			v.Add(param, value)
+		}
+		parsedURL.RawQuery = v.Encode()
+	}
+	return parsedURL.String(), nil
 }

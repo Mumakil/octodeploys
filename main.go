@@ -56,6 +56,8 @@ func main() {
 		fmt.Println(help)
 	case "list":
 		err = listCommand(args)
+	case "deactivate":
+		err = deactivateCommand(args)
 	default:
 		fmt.Printf("Unrecognized command \"%s\"\n\n", command)
 		fmt.Println(help)
@@ -64,5 +66,4 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error running command \"%s\": %s\n", command, err.Error())
 		os.Exit(1)
 	}
-	os.Exit(0)
 }
