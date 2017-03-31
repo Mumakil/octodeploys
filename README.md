@@ -28,10 +28,10 @@ List deployments
 github-deployments list
 ```
 
-List deployments, filter by state and environment, include statuses.
+Fetch 5 most recent deployments by environment, filter by state and include statuses.
 
 ```sh
-github-deployments -statuses -state error -environment production list
+github-deployments -statuses -state error -environment production -limit 5 list
 ```
 
 ## License
