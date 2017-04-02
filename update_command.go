@@ -10,17 +10,26 @@ import (
 // BetaAccessHeader required to use inactive statuses in GitHub deployments api
 const BetaAccessHeader = "application/vnd.github.ant-man-preview+json"
 
-var description string
+// Description description for the state
+var Description string
+
+// NewState new state for the deployment
+var NewState string
 
 func init() {
-	flag.StringVar(&description, "description", "", "description for the inactive status")
+	flag.StringVar(&Description, "description", "", "description for the status")
+	flag.StringVar(&NewState, "newState", "", "new state for the deployment")
 }
 
-func deactivateCommand(rawDeploymentIDs []string) error {
+func updateCommand(rawDeploymentIDs []string) error {
 	err := validateGlobalArgs()
 	if err != nil {
 		return err
 	}
+	if NewState == "" {
+		return fmt.Errorf("missing newState")
+	}
+
 	deploymentIDs := make([]uint64, 0, len(rawDeploymentIDs))
 	for _, rawID := range rawDeploymentIDs {
 		id, err := strconv.ParseUint(rawID, 10, 64)
@@ -33,17 +42,17 @@ func deactivateCommand(rawDeploymentIDs []string) error {
 	client := NewClient(GitHubToken)
 	client.AcceptHeader = BetaAccessHeader
 
-	return deactivateAll(client, deploymentIDs)
+	return updateAll(client, deploymentIDs)
 }
 
-func deactivateAll(client *Client, deploymentIDs []uint64) error {
+func updateAll(client *Client, deploymentIDs []uint64) error {
 	wg := sync.WaitGroup{}
 	errors := make(chan error, len(deploymentIDs))
 	defer close(errors)
 	for _, id := range deploymentIDs {
 		wg.Add(1)
 		go func(deploymentID uint64) {
-			err := deactivateDeployment(client, deploymentID)
+			err := updateDeployment(client, deploymentID)
 			if err != nil {
 				errors <- err
 			}
@@ -57,14 +66,14 @@ func deactivateAll(client *Client, deploymentIDs []uint64) error {
 	return nil
 }
 
-func deactivateDeployment(client *Client, deploymentID uint64) error {
+func updateDeployment(client *Client, deploymentID uint64) error {
 	url := fmt.Sprintf("/repos/%s/deployments/%d/statuses", GitHubRepository, deploymentID)
 	data := struct {
 		State       string `json:"state"`
 		Description string `json:"description"`
 	}{
-		State:       "inactive",
-		Description: description,
+		State:       NewState,
+		Description: Description,
 	}
 	return client.Post(url, data)
 }

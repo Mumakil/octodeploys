@@ -37,7 +37,13 @@ github-deployments -statuses -state error -environment production -limit 5 list
 Deactivate (set status to `inactive`) two deployments
 
 ```sh
-github-deployments -description "No longer active" deactivate 281858265 281858266
+github-deployments -description "No longer active" -newState inactive update 281858265 281858266
+```
+
+Fetch last 10 deployments by environment and update all in a specific state
+
+```sh
+github-deployments -limit 10 -environment production -state success -newState inactive -description "No longer active" updateByState
 ```
 
 ## License

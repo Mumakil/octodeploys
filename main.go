@@ -56,10 +56,10 @@ func main() {
 		fmt.Println(help)
 	case "list":
 		err = listCommand(args)
-	case "deactivate":
-		err = deactivateCommand(args)
-	case "deactivateAll":
-		err = deactivateAllCommand(args)
+	case "update":
+		err = updateCommand(args)
+	case "updateByState":
+		err = updateByStateCommand(args)
 	default:
 		fmt.Printf("Unrecognized command \"%s\"\n\n", command)
 		fmt.Println(help)

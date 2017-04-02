@@ -1,6 +1,9 @@
 package main
 
-import "flag"
+import (
+	"flag"
+	"fmt"
+)
 
 // Except don't touch this deployment id
 var Except uint64
@@ -9,11 +12,16 @@ func init() {
 	flag.Uint64Var(&Except, "except", 0, "don't touch this specific deployment id")
 }
 
-func deactivateAllCommand(args []string) error {
+func updateByStateCommand(args []string) error {
 	err := validateGlobalArgs()
-
 	if err != nil {
 		return err
+	}
+	if State == "" {
+		return fmt.Errorf("missing state")
+	}
+	if NewState == "" {
+		return fmt.Errorf("missing newState")
 	}
 
 	client := NewClient(GitHubToken)
@@ -35,5 +43,5 @@ func deactivateAllCommand(args []string) error {
 			deploymentIDs = append(deploymentIDs, deployment.ID)
 		}
 	}
-	return deactivateAll(client, deploymentIDs)
+	return updateAll(client, deploymentIDs)
 }
