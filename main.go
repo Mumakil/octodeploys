@@ -17,8 +17,9 @@ const help = `github-deployments manages GitHub deployments for a repository
 Available commands:
 
 	help - print this help
-	list - list open deployments
-	deactivate - deactivate provided deployments
+	list - list open deployments and filter optionally by environment or state
+	update - update provided deployments with new status
+	updateByState - fetch deployments matching an optional environment or state and update all with new status
 `
 
 func validateGlobalArgs() error {
