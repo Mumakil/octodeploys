@@ -1,4 +1,4 @@
-package main // import "github.com/Mumakil/github-deployments"
+package main // import "github.com/Mumakil/octodeploys"
 
 import (
 	"flag"
