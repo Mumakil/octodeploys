@@ -1,4 +1,4 @@
-# github-deployments
+# Octodeploys
 
 CLI for managing deployments in GitHub repositories
 
